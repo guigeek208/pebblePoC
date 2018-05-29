@@ -9,7 +9,7 @@ var ajax = require('ajax');
 var Vector2 = require('vector2');
 var Vibe = require('ui/vibe');
 var Light = require('ui/light');
-var remainingTime = 3599;
+var remainingTime = 3600;
 var booltime = true;
 var main = new UI.Window({
     backgroundColor: 'black'
@@ -54,12 +54,19 @@ function checkRoomStatus() {
       console.log(data);
       var parsed = JSON.parse(data);
       console.log(parsed.begin_game);
-      if (parsed.begin_game == true) {
-        console.log("Game started");
-        begin_game = true;
-        refreshTime();
+      if (begin_game == false) {
+        if (parsed.begin_game == true) {
+          console.log("Game started");
+          begin_game = true;
+          textfield.text("60:00");
+          refreshTime();
+        } else {
+          setTimeout(checkRoomStatus, 30000);
+        }
       } else {
-        setTimeout(checkRoomStatus, 30000);
+        if (parsed.begin_game == false) {
+          begin_game = false;
+        }
       }
     },  // End of success callback
     function(error) {
@@ -71,8 +78,8 @@ function checkRoomStatus() {
 
 function refreshTime() {
   console.log("RefreshTime Debut : "+remainingTime);
-  if (remainingTime != 3600) {
-    if (remainingTime % 10 == 0) {
+  if (remainingTime > 0) {
+    if (remainingTime % 20 == 0) {
         getTime();
         if ((remainingTime == 600) || (remainingTime == 300) || (remainingTime == 900)) {
           Vibe.vibrate('long');
@@ -94,9 +101,13 @@ function refreshTime() {
         console.log(data);
         remainingTime = remainingTime-1;
     }
+    console.log("RefreshTime Fin : "+remainingTime);
+    setTimeout(refreshTime, 1000);
+  } else {
+    textfield.text("00:00");
+    console.log("RefreshTime Fin : "+remainingTime);
+    setTimeout(checkRoomStatus, 1000);
   }
-  console.log("RefreshTime Fin : "+remainingTime);
-  setTimeout(refreshTime, 1000);
 }
 
 function getTime() {
